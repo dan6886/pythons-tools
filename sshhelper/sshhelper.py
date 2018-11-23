@@ -1,6 +1,7 @@
 import paramiko
 import datetime
 import os
+import sys
 import time
 
 # hostname = '192.168.11.123'
@@ -15,7 +16,9 @@ remote_dir = 'logs'
 def func(i, j):
     cureentmb = round(i / (1024 * 1024), 2)
     totalmb = round(j / (1024 * 1024), 2)
-    print('{current}MB/{total}MB'.format(current=cureentmb, total=totalmb))
+    # print('{current}MB/{total}MB'.format(current=cureentmb, total=totalmb))
+    # print(int((i / j) * 100))
+    show_process(int((i / j) * 100))
 
 
 def DownLoadFile(sftp, LocalFile, RemoteFile):  # 下载当个文件
@@ -42,24 +45,47 @@ def DownLoadFileTree(sftp, LocalDir, RemoteDir):  # 下载整个目录下的文�
     return "complete"
 
 
+def show_process(percent=None):
+    width = 60
+    if percent >= 100:
+        percent = 100
+
+    # show_str = ('[%%-%ds]' % width) % (int(width * percent / 100) * "*")  # 字符串拼接的嵌套使用
+    # # print('\r%s %d%%' % (show_str, percent), end='')
+    # sys.stdout.write("\r%s %d%%" % (show_str, percent))
+    # sys.stdout.flush()
+
+    hashes = '*' * int(percent/100.0 * 50)
+    spaces = ' ' * (50 - len(hashes))
+    sys.stdout.write("\rPercent: [%s] %d%%"%(hashes + spaces, percent))
+    sys.stdout.flush()
+
+    if percent == 100:
+        print("")
+
+
 if __name__ == '__main__':
     try:
-        print("ytxmyqkdcsmz")
-        m = input("局域网模式/M|网线模式/L")
+        print("wywbnjysxx")
+        print("===========四叶草系列工具三==============")
+        m = input("局域网模式/M|网线模式/L:")
         if m == 'm' or m == 'M':
             hostname = input("RosIp:")
         elif m == 'l' or m == 'L':
             hostname = '192.168.11.123'
+            # hostname = '10.10.27.144'
 
-        userStr = input("用户名，默认直接回车")
+        userStr = input("用户名，默认直接回车:")
         if userStr != "":
             username = userStr
 
-        passStr = input("密码，默认直接回车")
+        passStr = input("密码，默认直接回车:")
         if passStr != "":
             password = passStr
+        message = input("操作备注 默认直接回车:")
+        print("如果没有很快开始，请检查网络和ip")
         nowTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')  # 现在
-        local_dir = nowTime + '/logs'
+        local_dir = nowTime + '-' + message + '/logs'
         t = paramiko.Transport((hostname, port))
         t.banner_timeout = 30
         t.connect(username=username, password=password)
@@ -67,7 +93,6 @@ if __name__ == '__main__':
 
         # sftp.get(os.path.join(remote_dir, f), os.path.join(local_dir, f))
         DownLoadFileTree(sftp, local_dir, remote_dir)
-        print("name")
         t.close()
         input("请按回车键退出，拜拜！！！")
     except Exception as err:

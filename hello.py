@@ -1,5 +1,14 @@
-import re
+import sys
+import time
 
-a = '[  0%] /data/local/tmp/dance_1.0_2018-04-17.APK'
-ret = re.search('[0-9]*%', a)
-print(ret.group())
+
+def progress_test():
+    bar_length=20
+    for percent in range(0, 100):
+        hashes = '#' * int(percent/100.0 * bar_length)
+        spaces = ' ' * (bar_length - len(hashes))
+        sys.stdout.write("\rPercent: [%s] %d%%"%(hashes + spaces, percent))
+        sys.stdout.flush()
+        time.sleep(1)
+
+progress_test()
