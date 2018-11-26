@@ -8,3 +8,5 @@
 pyinstaller -F main.py -i icon/favicon.ico
 
 pyinstaller -F rename/rename.py -i icon/favicon-red.ico
+
+pyinstaller -F sshhelper/sshhelper.py -i icon/blue.ico
