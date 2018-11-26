@@ -10,3 +10,7 @@ pyinstaller -F main.py -i icon/favicon.ico
 pyinstaller -F rename/rename.py -i icon/favicon-red.ico
 
 pyinstaller -F sshhelper/sshhelper.py -i icon/blue.ico
+
+pyinstaller -F ui/start.py -i icon/favicon-red.ico
+
+如果遇到图标打包显示不正确，请修改exe文件名则会刷新正确
