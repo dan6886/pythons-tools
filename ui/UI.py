@@ -6,6 +6,14 @@ import base64
 
 
 class GUI:
+    wifi_tips = "无线模式依赖网络情况，建议在局域网信号较好的情况下使用。" \
+                "\n密码和用户名如果是默认的可以不填" \
+                "\n备注名可以让生成日志文件夹有新的名字" \
+                "\n下载文件的顺序是从最新文件到最旧的文件，可以在恰当的时候停止下载"
+    line_tips = "网线模式下,请正确手动设置电脑的ip" \
+                "\n密码和用户名如果是默认的可以不填" \
+                "\n备注名可以让生成日志文件夹有新的名字" \
+                "\n下载文件的顺序是从最新文件到最旧的文件，可以在恰当的时候停止下载"
 
     def __init__(self, start, stop):
         self.root_window = Tk()
@@ -20,16 +28,27 @@ class GUI:
         self.user_name = StringVar()
         self.pass_word = StringVar()
         self.state = 0
+        # UI
+        self.canvas = None
+        self.console_text = None
+        self.canvas_shape = None
+        self.canvas_text = None
+        self.canvas2 = None
+        self.console_text2 = None
+        self.canvas_shape2 = None
+        self.canvas_text2 = None
+        self.start_button = None
 
     def start(self):
         self.root_window.mainloop()
 
-    def excute(self):
+    def execute(self):
         if self.state == 0:
             self.state = 1
             self.start_button['text'] = "停止"
-            self.start_callback()
             self.console_text.delete(1.0, END)
+            self.start_callback()
+
         elif self.state == 1:
             self.state = 0
             self.start_button['text'] = "开始"
@@ -102,9 +121,8 @@ class GUI:
         # 进度条
         self.canvas = Canvas(self.root_window, width=600, height=26, bg="white")
         # 创建一个矩形外边框（距离左边，距离顶部，矩形宽度，矩形高度），线型宽度，颜色
-        # self.out_line = self.canvas.create_rectangle(2, 2, 610, 27, width=1, outline="black")
 
-        self.canvas_shape = self.canvas.create_rectangle(0, 0, 0, 0, fill='green')
+        self.canvas_shape = self.canvas.create_rectangle(0, 0, 0, 0, fill='green', width=0)
         self.canvas_text = self.canvas.create_text(292, 4, anchor=NW)
         self.canvas.itemconfig(self.canvas_text, text='0%')
         self.var_progress_bar_percent.set('00.00  %')
@@ -112,33 +130,44 @@ class GUI:
 
         # 总进度条
         self.canvas2 = Canvas(self.root_window, width=600, height=26, bg="white")
-        self.canvas_shape2 = self.canvas2.create_rectangle(0, 0, 0, 0, fill='green')
+        self.canvas_shape2 = self.canvas2.create_rectangle(0, 0, 0, 0, fill='green', width=0)
         self.canvas_text2 = self.canvas2.create_text(292, 4, anchor=NW)
         self.canvas2.itemconfig(self.canvas_text2, text='0%')
         self.var_progress_bar_percent2.set('00.00  %')
         self.canvas2.grid(row=2, column=1, columnspan=8, ipadx=5, sticky=E)
 
         self.start_button = Button(self.root_window, text="开始", bg="lightblue", width=10,
-                                   command=self.excute)
+                                   command=self.execute)
         self.start_button.grid(row=4, column=8)
+        self.update_log(GUI.wifi_tips)
 
     def mode_choose(self):
         mode = self.mode.get()
         if mode == 1:
             self.ros_ip.set("")
+            if self.state == 0:
+                self.console_text.delete(1.0, END)
+                self.append_log(GUI.wifi_tips)
         elif mode == 2:
             self.ros_ip.set("192.168.11.123")
+            if self.state == 0:
+                self.console_text.delete(1.0, END)
+                self.append_log(GUI.line_tips)
         print("" + str(self.mode.get()))
 
     def update_progress_bar(self, percent, msg):
+        if percent >= 100:
+            percent = 100
         green_length = int(self.sum_length * percent / 100)
-        self.canvas.coords(self.canvas_shape, (0, 0, green_length, 26))
+        self.canvas.coords(self.canvas_shape, (0, 3, green_length, 27))
         self.canvas.itemconfig(self.canvas_text, text='%s%%%s' % (percent, msg))
         self.var_progress_bar_percent.set('%0.2f  %%' % percent)
 
     def update_progress_bar2(self, percent, msg):
+        if percent >= 100:
+            percent = 100
         green_length = int(self.sum_length * percent / 100)
-        self.canvas2.coords(self.canvas_shape2, (0, 0, green_length, 26))
+        self.canvas2.coords(self.canvas_shape2, (0, 3, green_length, 27))
         self.canvas2.itemconfig(self.canvas_text2, text='%s%%%s' % (percent, msg))
         self.var_progress_bar_percent2.set('%0.2f  %%' % percent)
 

@@ -94,7 +94,7 @@ class SSHHelper:
             print("")
 
     def start(self):
-
+        self.downloaded_counts = 1
         try:
             rosip = self.gui.ros_ip.get()
             file_name = self.gui.file_name.get()
@@ -134,3 +134,4 @@ class SSHHelper:
 
     def stop(self):
         self.t.close()
+
