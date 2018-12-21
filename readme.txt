@@ -13,4 +13,6 @@ pyinstaller -F sshhelper/sshhelper.py -i icon/blue.ico
 
 pyinstaller -F ui/start.py -i icon/favicon-red.ico
 
+pyinstaller -F encryp/start.py -w
+
 如果遇到图标打包显示不正确，请修改exe文件名则会刷新正确
