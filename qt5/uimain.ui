@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>744</width>
-    <height>600</height>
+    <width>708</width>
+    <height>429</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,44 +52,12 @@
      <number>0</number>
     </property>
    </widget>
-   <widget class="QRadioButton" name="line">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>40</y>
-      <width>89</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="acceptDrops">
-     <bool>false</bool>
-    </property>
-    <property name="text">
-     <string>数据线模式</string>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="wifi">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>60</y>
-      <width>89</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>wifi模式</string>
-    </property>
-   </widget>
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>90</x>
       <y>30</y>
-      <width>401</width>
+      <width>511</width>
       <height>31</height>
      </rect>
     </property>
@@ -106,22 +74,26 @@
      </item>
      <item>
       <widget class="QLineEdit" name="aip">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>10</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>500</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="placeholderText">
-        <string>请设置设备ip地址</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>备注名称</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="addname">
-       <property name="toolTip">
-        <string>设置备注名，上一个生成的日志拉取之后会拼接备注名</string>
+        <string>若数据线连接则不用设置ip，wifi连接则请设置ip，并连接 (︶.̮︶✽)</string>
        </property>
       </widget>
      </item>
@@ -130,9 +102,9 @@
    <widget class="QWidget" name="horizontalLayoutWidget_2">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>70</y>
-      <width>401</width>
+      <x>90</x>
+      <y>80</y>
+      <width>511</width>
       <height>31</height>
      </rect>
     </property>
@@ -148,6 +120,26 @@
       <widget class="QLineEdit" name="child_dir">
        <property name="toolTip">
         <string>设置子文件夹的名称</string>
+       </property>
+       <property name="placeholderText">
+        <string>请避免中文名称</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>备注名称</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="addname">
+       <property name="toolTip">
+        <string>设置备注名，上一个生成的日志拉取之后会拼接备注名</string>
+       </property>
+       <property name="placeholderText">
+        <string>可以中文名称</string>
        </property>
       </widget>
      </item>
@@ -308,7 +300,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>744</width>
+     <width>708</width>
      <height>23</height>
     </rect>
    </property>

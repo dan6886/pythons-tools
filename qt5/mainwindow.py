@@ -1,10 +1,12 @@
 import subprocess
 import sys
 import PyQt5.sip
+from PyQt5 import QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QApplication, QMainWindow
-
+from PyQt5.QtGui import QIcon
 from qt5.uimain import Ui_MainWindow
+import random
 
 
 class Worker(QThread):
@@ -78,12 +80,15 @@ class Worker(QThread):
                 line = line.rstrip()
                 if line != "":
                     self.notify_log.emit(line)
-                    mainwindow._last_log_name = mainwindow.get_log_name(line)
+                    log_name = mainwindow.get_log_name(line)
+                    if log_name != None:
+                        mainwindow._last_log_name = mainwindow.get_log_name(line)
+                        self.notify_log.emit("生成日志:" + mainwindow._last_log_name)
                 print(">>>" + line)
             self.notify_result.emit(self.type, None)
             print("生成日志:")
         elif self.type == 4:
-            # 生成日志
+            # 日志
             p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE, universal_newlines=True,
@@ -97,6 +102,7 @@ class Worker(QThread):
                     self.notify_log.emit(line)
                     mainwindow._last_log_name = mainwindow.get_log_name(line)
                 print(">>>" + line)
+            self.notify_log.emit("删除完成日志:")
             self.notify_result.emit(self.type, None)
             print("删除全部:")
         elif self.type == 5:
@@ -127,13 +133,39 @@ class mainwindow(QMainWindow, Ui_MainWindow):
     _last_log_name = ""
     _all_pull = False
     _status = 0
+    _tips = [
+        "清晰的表达自己的想法可以避免未知为问题",
+        "每天保证充足的休息时间",
+        "不浪费时间就是每天都能学习到新的东西",
+        "思维混乱是因为不够了解，不够了解是因为不够投入",
+        "好好工作，好好品尝喜爱的炒饭",
+        "你知道匹兹堡的女孩子吗？",
+        "你爱喝星巴克吗？超好喝的",
+        "每次我感到失意时,都回忆起你的浅笑",
+        "如果工具有问题，别找我",
+        "如果工具有问题，别找我",
+        "如果工具有问题，别找我",
+        "垂头丧气会引来负面的情绪，所以不要让它盯上",
+        "不断的学习新的技能才能让自己丧失竞争力",
+        "天使都爱水气球",
+        "跑步跑步跑步，出汗出汗出汗",
+        "周末休息，打扫卫生也是有意义",
+        "抓完这个日志一起去喝粥啊",
+        "我和猪都很能睡",
+        "即使以后相忘于江湖，也会留着自己的传说",
+        "风快要停了，你飞起来了吗？",
+        "i l c c g"
+    ]
 
     def __init__(self):
         super(mainwindow, self).__init__()
+        self.timer = QTimer(self)  # 初始化一个定时器
+        self.timer.timeout.connect(self.change)  # 计时结束调用operate()方法
+        self.timer.start(2000)  # 设置计时间隔并启动
         self.setupUi(self)
         self.start.clicked.connect(self.start_action)
-        self.line.toggled.connect(lambda: self.raido_button_select("line"))
-        self.wifi.toggled.connect(lambda: self.raido_button_select("wifi"))
+        # self.line.toggled.connect(lambda: self.raido_button_select("line"))
+        # self.wifi.toggled.connect(lambda: self.raido_button_select("wifi"))
         self.make_log.clicked.connect(self.make_log_action)
         self.all_pull.stateChanged.connect(self.all_pull_select)
         self.thread = Worker()
@@ -143,6 +175,10 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         self.connectIp.clicked.connect(self.check_connect)
         self.clear_all.clicked.connect(self.clear)
         self.open_dir.clicked.connect(self.open)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("../icon/11.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.setWindowIcon(icon)
+        self.setToolTip("22222")
 
     def start_action(self):
         if mainwindow._status != 0:
@@ -231,6 +267,8 @@ class mainwindow(QMainWindow, Ui_MainWindow):
     def all_pull_select(self):
         target = self.sender()
         mainwindow._all_pull = target.isChecked()
+        if target.isChecked():
+            self.append_log("注意:全部拉取的话则不拼接备注名称了哦！！！！")
 
     def stop_action(self):
         pass
@@ -295,6 +333,10 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         self.thread.set_cmd(5, cmd)
         self.thread.start()
         pass
+
+    def change(self):
+        i = random.randint(0, len(mainwindow._tips) - 1)
+        self.setToolTip(mainwindow._tips[i])
 
     @staticmethod
     def get_precent(start_str, end, thestr):
