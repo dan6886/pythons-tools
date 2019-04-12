@@ -136,7 +136,7 @@ class Ui_MainWindow(object):
         self.addname.setPlaceholderText(_translate("MainWindow", "可以中文名称"))
         self.make_log.setToolTip(_translate("MainWindow", "连接上设备之后，点击生成日志"))
         self.make_log.setText(_translate("MainWindow", "生成日志"))
-        self.hour.setToolTip(_translate("MainWindow", "z抓取日志的时间(小时)，不填写默认为8小时"))
+        self.hour.setToolTip(_translate("MainWindow", "抓取日志的时间(小时)，不填写默认为8小时"))
         self.hour.setText(_translate("MainWindow", "8"))
         self.hour.setPlaceholderText(_translate("MainWindow", "默认8小时"))
         self.all_pull.setToolTip(_translate("MainWindow", "勾选则拉取设备端全部日志"))

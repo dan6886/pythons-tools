@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtGui import QIcon
 from qt5.uimain import Ui_MainWindow
 import random
+import base64
+from qt5.iconimage import img
 
 
 class Worker(QThread):
@@ -32,6 +34,24 @@ class Worker(QThread):
     def run(self):
         print(self.type)
         if self.type == 1:
+            files = []
+            p = subprocess.Popen("adb shell ls /sdcard/log/", stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, universal_newlines=True,
+                                 shell=True)
+            for line in iter(p.stdout.readline, b''):
+                if line == "" and p.poll() != None:
+                    break
+                line = line.rstrip()
+                if line != "":
+                    files.append(line)
+                print("files:" + line)
+
+            if len(files) == 0:
+                self.notify_log.emit("没有任何日志无法拉取")
+            else:
+                self.notify_log.emit("全部日志列表" + str(files))
+
             # 拉取日志
             p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE,
@@ -49,6 +69,7 @@ class Worker(QThread):
             print("线程执行完成")
             mainwindow._status = 0
             self.notify_result.emit(self.type, None)
+            self.notify_log.emit("拉取日志完成")
         elif self.type == 2:
             # 连接设备
             print("连接设备")
@@ -143,19 +164,47 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         "你爱喝星巴克吗？超好喝的",
         "每次我感到失意时,都回忆起你的浅笑",
         "如果工具有问题，别找我",
-        "如果工具有问题，别找我",
-        "如果工具有问题，别找我",
         "垂头丧气会引来负面的情绪，所以不要让它盯上",
-        "不断的学习新的技能才能让自己丧失竞争力",
+        "不断的学习新的技能才能让自己保留竞争力",
         "天使都爱水气球",
         "跑步跑步跑步，出汗出汗出汗",
+        "晚上少喝奶茶，奶茶使人失眠和肥胖",
+        "一日三餐，能吃出幸福的味道最好",
         "周末休息，打扫卫生也是有意义",
         "抓完这个日志一起去喝粥啊",
         "我和猪都很能睡",
-        "即使以后相忘于江湖，也会留着自己的传说",
+        "即使以后相忘于江湖，也会留着你的回忆",
         "风快要停了，你飞起来了吗？",
+        "有机会尝一下霸气草莓或者元气森林？",
+        "晚睡容易衰老，衰老容易出局",
+        "我想问你，你不冷吗？",
+        "尽量多说点话，因为话说出来，体重就轻了",
+        "专注于一件事情，让它成为你的优势，这样自然就自信起来了",
+        "如果有人夸你瘦了，请别太过于欣喜，也许他有求于你",
+        "靠饥饿来减肥，这不是一个好的主意",
+        "脑袋疼，眼睛肿，多吃水果",
+        "突然想唱一首歌‘A,B,C,D,E,F,G’",
+        "第一次煮鸡蛋不太老，第二次不好剥，第三次没熟透，继续总会掌握要领",
+        "被人说像蜡笔小新，还被人说像刘烨",
+        "你克扣了我的芝麻肉脯",
+        "删除文件就rm 我知道了 记住记住记住",
+        "你克扣了我的客家擂茶",
+        "你克扣了我的芒果椰汁西米露 家里弄的那种",
+        "世上能找到多少个和白菜肉片汤用盆的人呢？",
+        "抹茶可可碎片星冰乐，这个名字念完的时候人都渴死了，简称：'抹乐'",
+        "八卦是改善工作情绪的良药",
+        "你知道吗脸上有痘痘的话接电话都会不小心按到挂断，所以不要长痘痘",
+        "我没你想的那么笨，我知道你要我先说些什么",
+        "还有人用'我胖的速度比别人慢很多的'这样的借口",
+        "才发现自己有了新的口头禅'然后截图给我看'",
+        "一穿绿毛衣就能在b1看到我，好害怕穿绿毛衣，因为好害怕哪一天就不灵了",
+        "赶紧撤回，免得截图，嘻",
         "i l c c g"
     ]
+
+    # _tips = [
+    #     "对不起，小主不让我说话，我和你没话可说"
+    # ]
 
     def __init__(self):
         super(mainwindow, self).__init__()
@@ -175,8 +224,11 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         self.connectIp.clicked.connect(self.check_connect)
         self.clear_all.clicked.connect(self.clear)
         self.open_dir.clicked.connect(self.open)
+        tmp = open("tmp.png", "wb+")
+        tmp.write(base64.b64decode(img))
+        tmp.close()
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../icon/11.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("tmp.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.setWindowIcon(icon)
         self.setToolTip("22222")
 

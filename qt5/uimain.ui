@@ -234,7 +234,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>z抓取日志的时间(小时)，不填写默认为8小时</string>
+        <string>抓取日志的时间(小时)，不填写默认为8小时</string>
        </property>
        <property name="text">
         <string>8</string>
