@@ -14,7 +14,7 @@ from qt5.iconimage import img
 class Worker(QThread):
     update_progress = pyqtSignal(str)  # 自定义信号，执行run()函数时，从相关线程发射此信号
     notify_result = pyqtSignal(int, str)  # 自定义信号，执行run()函数时，从相关线程发射此信号
-    notify_log = pyqtSignal(str)
+    notify_log = pyqtSignal(str, str, str)
 
     def __init__(self, parent=None, type=None):
         super(Worker, self).__init__(parent)
@@ -48,9 +48,9 @@ class Worker(QThread):
                 print("files:" + line)
 
             if len(files) == 0:
-                self.notify_log.emit("没有任何日志无法拉取")
+                self.notify_log.emit("没有任何日志无法拉取", "bold", "red")
             else:
-                self.notify_log.emit("全部日志列表" + str(files))
+                self.notify_log.emit("全部日志列表" + str(files), "bold", "green")
 
             # 拉取日志
             p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
@@ -69,10 +69,10 @@ class Worker(QThread):
             print("线程执行完成")
             mainwindow._status = 0
             self.notify_result.emit(self.type, None)
-            self.notify_log.emit("拉取日志完成")
+            self.notify_log.emit("拉取日志完成", "bold", "green")
         elif self.type == 2:
             # 连接设备
-            print("连接设备")
+            print("连接设备:" + self.cmd)
             p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE, universal_newlines=True,
                                  shell=True)
@@ -83,14 +83,15 @@ class Worker(QThread):
 
                     line = line.rstrip()
                     if line != "":
-                        self.notify_log.emit(line)
+                        self.notify_log.emit(line, "bold", "green")
                     print(">>>" + line)
             except UnicodeDecodeError as e:
-                self.notify_log.emit("fail to connect")
+                self.notify_log.emit("fail to connect", "bold", "red")
             self.notify_result.emit(self.type, None)
         elif self.type == 3:
             # 生成日志
-            p = subprocess.Popen("adb shell todo getlog 3", stdin=subprocess.PIPE,
+            print("生成日志：" + self.cmd)
+            p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE, universal_newlines=True,
                                  shell=True)
@@ -100,11 +101,11 @@ class Worker(QThread):
 
                 line = line.rstrip()
                 if line != "":
-                    self.notify_log.emit(line)
+                    self.notify_log.emit(line, None, "black")
                     log_name = mainwindow.get_log_name(line)
                     if log_name != None:
                         mainwindow._last_log_name = mainwindow.get_log_name(line)
-                        self.notify_log.emit("生成日志:" + mainwindow._last_log_name)
+                        self.notify_log.emit("生成日志:" + mainwindow._last_log_name, "bold", "green")
                 print(">>>" + line)
             self.notify_result.emit(self.type, None)
             print("生成日志:")
@@ -120,10 +121,10 @@ class Worker(QThread):
 
                 line = line.rstrip()
                 if line != "":
-                    self.notify_log.emit(line)
+                    self.notify_log.emit(line, None, "black")
                     mainwindow._last_log_name = mainwindow.get_log_name(line)
                 print(">>>" + line)
-            self.notify_log.emit("删除完成日志:")
+            self.notify_log.emit("删除日志完成", "bold", "green")
             self.notify_result.emit(self.type, None)
             print("删除全部:")
         elif self.type == 5:
@@ -138,7 +139,7 @@ class Worker(QThread):
 
                 line = line.rstrip()
                 if line != "":
-                    self.notify_log.emit(line)
+                    self.notify_log.emit(line, "bold", "blue")
                     mainwindow._last_log_name = mainwindow.get_log_name(line)
                 print(">>>" + line)
             self.notify_result.emit(self.type, None)
@@ -199,8 +200,17 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         "才发现自己有了新的口头禅'然后截图给我看'",
         "一穿绿毛衣就能在b1看到我，好害怕穿绿毛衣，因为好害怕哪一天就不灵了",
         "赶紧撤回，免得截图，嘻",
+        "天蓬哥哥~~",
+        "怎么样才能做到每个人都喜欢你",
+        "我不要gk~~",
+        "有些事情烂在肚子，化作春泥更护花",
+        "即使说了不见不散，也不一定做得到，这就是承诺的代价",
+        "椰果味的真果粒很好喝，比老年钙奶好喝",
+        "一个假装看不见，一个假装没被看见",
+        "每个人都喜欢我，好烦啊~~",
         "i l c c g"
     ]
+    _csh = True
 
     # _tips = [
     #     "对不起，小主不让我说话，我和你没话可说"
@@ -208,9 +218,12 @@ class mainwindow(QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         super(mainwindow, self).__init__()
+        if not mainwindow._csh:
+            mainwindow._tips = ["抱歉，小主不让我多说，我藏在心里。"]
+
         self.timer = QTimer(self)  # 初始化一个定时器
         self.timer.timeout.connect(self.change)  # 计时结束调用operate()方法
-        self.timer.start(2000)  # 设置计时间隔并启动
+        self.timer.start(1500)  # 设置计时间隔并启动
         self.setupUi(self)
         self.start.clicked.connect(self.start_action)
         # self.line.toggled.connect(lambda: self.raido_button_select("line"))
@@ -220,7 +233,7 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         self.thread = Worker()
         self.thread.update_progress.connect(self.update_progress)
         self.thread.notify_result.connect(self.notify_result)
-        self.thread.notify_log.connect(self.append_log)
+        self.thread.notify_log.connect(self.append_log_style)
         self.connectIp.clicked.connect(self.check_connect)
         self.clear_all.clicked.connect(self.clear)
         self.open_dir.clicked.connect(self.open)
@@ -265,7 +278,7 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         #     return
         mainwindow._status = 2
         cmd = 'adb connect {ip}'.format(ip=mainwindow._aip)
-        self.append_log(cmd)
+        self.append_bold_log(cmd)
         self.thread.set_cmd(2, cmd)
         self.thread.start()
 
@@ -289,12 +302,12 @@ class mainwindow(QMainWindow, Ui_MainWindow):
             mainwindow._time = '8'
 
         if mainwindow._status != 0:
-            self.append_log("当前正在执行任务，不可重复开始")
+            self.append_red_log("当前正在执行任务，不可重复开始")
             print("重复了")
             return
         mainwindow._status = 3
         cmd = 'adb shell todo getlog {hour}'.format(hour=mainwindow._time)
-        self.append_log(cmd)
+        self.append_bold_log(cmd)
         self.thread.set_cmd(3, cmd)
         self.thread.start()
         pass
@@ -320,15 +333,34 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         target = self.sender()
         mainwindow._all_pull = target.isChecked()
         if target.isChecked():
-            self.append_log("注意:全部拉取的话则不拼接备注名称了哦！！！！")
+            self.append_red_log("注意:全部拉取的话则不拼接备注名称了哦！！！！")
 
     def stop_action(self):
         pass
 
     def append_log(self, text):
         self.log_text.append(text)
-        # self.log_text.append("\n")
         pass
+
+    def append_green_log(self, text):
+        green_text = '<p style=\'font-family:verdana;font-size:80%;color:green\'>{text}</p>'.format(
+            text=text)
+        self.append_log(green_text)
+
+    def append_red_log(self, text):
+        red_text = '<p style=\'font-family:verdana;font-size:80%;color:red\'>{text}</p>'.format(
+            text=text)
+        self.append_log(red_text)
+
+    def append_bold_log(self, text):
+        bold_text = '<p style=\'font-family:verdana;font-size:80%;color:green;font-weight:\'>{text}</p>'.format(
+            text=text)
+        self.append_log(bold_text)
+
+    def append_log_style(self, text, fw="bold", color="black"):
+        bold_text = '<p style=\'font-family:verdana;font-size:80%;color:{color};font-weight:{fw}\'>{text}</p>'.format(
+            color=color, fw=fw, text=text)
+        self.append_log(bold_text)
 
     def update_progress(self, value):
         self.progress.setValue(int(value))
@@ -381,7 +413,7 @@ class mainwindow(QMainWindow, Ui_MainWindow):
     def open(self):
         mainwindow._status = 5
         cmd = "start ."
-        self.append_log(cmd)
+        self.append_bold_log(cmd)
         self.thread.set_cmd(5, cmd)
         self.thread.start()
         pass
@@ -417,12 +449,12 @@ class mainwindow(QMainWindow, Ui_MainWindow):
         if not isExists:
             os.makedirs(path)
             print(path + ' 创建成功')
-            self.append_log(path + '---->创建成功')
+            self.append_green_log(path + '---->创建成功')
             return True
         else:
             # 如果目录存在则不创建，并提示目录已存在
             print(path + ' 目录已存在')
-            self.append_log(path + '---->目录已存在')
+            self.append_green_log(path + '---->目录已存在')
             return False
 
 
