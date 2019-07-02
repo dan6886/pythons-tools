@@ -14,7 +14,7 @@ messages = ()
 all_messages = {}
 nick_name_csh = 'a～💗小屁民陈哒哒'
 remark_name_csh = '天使座'
-special_user = (nick_name_csh, remark_name_csh, "赵文强","罗沛鹏")
+special_user = (nick_name_csh, remark_name_csh, '魔鬼座', '赵文强', '罗沛鹏')
 
 
 def clear_old():
