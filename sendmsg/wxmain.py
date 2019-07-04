@@ -2,7 +2,7 @@ from wxpy import *
 import re
 import time
 import threading
-
+import os
 from sendmsg.loop_timer import LoopTimer
 
 bot = Bot()
@@ -14,7 +14,7 @@ messages = ()
 all_messages = {}
 nick_name_csh = 'a～💗小屁民陈哒哒'
 remark_name_csh = '天使座'
-special_user = (nick_name_csh, remark_name_csh, '魔鬼座', '赵文强', '罗沛鹏')
+special_user = [nick_name_csh, remark_name_csh, '魔鬼座', '罗沛鹏']
 
 
 def clear_old():
@@ -31,19 +31,37 @@ def prn_obj(obj):
     print('\n'.join(['%s:%s' % item for item in obj.__dict__.items()]))
 
 
-# 根据不同的联系人，生成不同的回复方式
-def build_name(msg):
-    preSentence = ''
+def check_special(msg):
+    if not isinstance(msg.chat, Friend):
+        return None
+    pre_sentence = ''
     if msg.sender.name in special_user or msg.sender.nick_name in special_user:
         create_time = str(msg.create_time)
 
-        preSentence = '报告猪立力，纠结的她{delay}秒后又撤回了一则消息，这里发给你了，我们假装不知道。\n发送时间:{create_time}\n内容如下:'.format(
+        pre_sentence = '报告猪立力，纠结的她{delay}秒后又撤回了一则消息，这里发给你了，我们假装不知道。\n发送时间:{create_time}\n内容如下:'.format(
             delay=get_delta_time(create_time), create_time=create_time)
-        pass
+    return pre_sentence
+
+
+# 根据不同的联系人，生成不同的回复方式
+def build_name(msg):
+    pre_sentence = ''
+    name = ""
+    from_chat = ""
+    if isinstance(msg.chat, Group):
+        name = msg.member.name
+        from_chat = msg.chat.name
+    elif isinstance(msg.chat, Friend):
+        name = msg.sender.name
+        from_chat = msg.sender.name
+    special = check_special(msg=msg)
+
+    if special is not None:
+        pre_sentence = special
     else:
-        preSentence = '{name}|{nick_name}--->测回一条消息:'.format(name=msg.sender.name,
-                                                             nick_name=msg.sender.nick_name)
-    return preSentence
+        pre_sentence = '{name}|{nick_name}--->测回一条消息:'.format(name=name,
+                                                              nick_name=from_chat)
+    return pre_sentence
 
 
 def get_delta_time(last_time):
@@ -58,21 +76,32 @@ def get_delta_time(last_time):
     return int(time.time() - last_time_stamp)
 
 
+def get_current_time():
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+
 @bot.register()
 def print_others(msg):
     print(msg)
-    # print(msg.type)
-    # print(msg.sender)
-    # print(msg.chat)
-    # prn_obj(msg)
+    print(msg.type)
+    print(msg.sender)
+    print(msg.chat)
+    prn_obj(msg)
     msg_id = msg.raw['MsgId']
     msg_status = msg.raw['Status']
+    msg_type = msg.raw['MsgType']
     # 消息存入字典里面
     all_messages.update({msg_id: msg})
     user_name = msg.sender.name
-    # 4代表撤回消息了
-    if msg_status == 4:
+    # 4代表撤Note 10002代表测回消息了,10000代表邀请入群
+    if msg_status == 4 and msg_type == 10002:
         # 获取到测回消息的id
+        msg_ids_find = re.search("\<msgid\>(.*?)\<\/msgid\>", msg.raw['Content'])
+        if msg_ids_find is None:
+            bot.file_helper.send(
+                '你自己撤回了一条消息(为保证隐私我就不来这里显示了)\n时间:{time}'.format(time=get_current_time()))
+            print('此条消息处理完毕！！！')
+            return
         old_msg_id = re.search("\<msgid\>(.*?)\<\/msgid\>", msg.raw['Content']).group(1)
         # 获取到被撤回的消息对象
         cancelled_message = all_messages.get(old_msg_id)
@@ -101,12 +130,27 @@ def print_others(msg):
         print(cancelled_message.raw['Text'])
         pass
 
-    print('处理完毕！！！')
+    print('此条消息处理完毕！！！')
+
+
+def find_target():
+    path = "user.txt"
+    users = []
+    if os.path.exists(path=path):
+        f = open("user.txt", "r", encoding='UTF-8')
+        users = f.readlines()
+        f.close()
+    for user in users:
+        user = user.strip("\n")
+        special_user.append(user)
 
 
 if __name__ == "__main__":
-    print("开始了")
-    timer = LoopTimer(300, clear_old)
+    print("扫描二维吗确认登陆")
+    print("有人撤回我会在微信的文件助手告诉你的")
+    # print("同级目录下面创建user.txt文件里面逐行写上昵称")
+    find_target()
+    timer = LoopTimer(400, clear_old)
     timer.start()
 
 embed()
