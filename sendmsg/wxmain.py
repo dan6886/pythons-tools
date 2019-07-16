@@ -1,20 +1,26 @@
-from wxpy import *
+import os
 import re
 import time
-import threading
-import os
+
+from wxpy import *
+
 from sendmsg.loop_timer import LoopTimer
 
-bot = Bot()
-bot.enable_puid()
-myfriends = bot.friends().search('天使座')[0]
-# myfriends.send("你好啊")
+bot = Bot(cache_path=True)
+mp = bot.enable_puid(path='wxpy_puid.pkl')
+# myfriends = bot.friends().search('天使座')[0]
+#
+# print(mp.get_puid(myfriends))
+# print(myfriends.puid)
+
 SourceSavePath = './RecieveFile/'
 messages = ()
 all_messages = {}
 nick_name_csh = 'a～💗小屁民陈哒哒'
 remark_name_csh = '天使座'
 special_user = [nick_name_csh, remark_name_csh, '魔鬼座', '罗沛鹏']
+
+debug = False
 
 
 def clear_old():
@@ -24,17 +30,26 @@ def clear_old():
         if get_delta_time(str(message_old.create_time)) > 300:
             del all_messages[key]
             print("delete over time:" + str(message_old.create_time), message_old)
-    print("there is left messages:" + str(len(all_messages)))
+    print_debug("there is left messages:" + str(len(all_messages)))
+
+
+def print_debug(msg):
+    if debug:
+        print('{time}|{msg}'.format(time=get_current_time(), msg=msg))
+
+
+def add_pre_time(msg):
+    return '{time}|{msg}'.format(time=get_current_time(), msg=msg)
 
 
 def prn_obj(obj):
-    print('\n'.join(['%s:%s' % item for item in obj.__dict__.items()]))
+    print_debug('\n'.join(['%s:%s' % item for item in obj.__dict__.items()]))
 
 
 def check_special(msg):
     if not isinstance(msg.chat, Friend):
         return None
-    pre_sentence = ''
+    pre_sentence = None
     if msg.sender.name in special_user or msg.sender.nick_name in special_user:
         create_time = str(msg.create_time)
 
@@ -70,7 +85,6 @@ def get_delta_time(last_time):
     :param last_time: 2019-07-02 20:35:02.600
     :return:
     """
-    print(time.time())
     timeArray = time.strptime(last_time.split('.')[0], "%Y-%m-%d %H:%M:%S")
     last_time_stamp = time.mktime(timeArray)
     return int(time.time() - last_time_stamp)
@@ -82,10 +96,10 @@ def get_current_time():
 
 @bot.register()
 def print_others(msg):
-    print(msg)
-    print(msg.type)
-    print(msg.sender)
-    print(msg.chat)
+    print(add_pre_time(msg))
+    print_debug(msg.type)
+    print_debug(msg.sender)
+    print_debug(msg.chat)
     prn_obj(msg)
     msg_id = msg.raw['MsgId']
     msg_status = msg.raw['Status']
@@ -146,8 +160,8 @@ def find_target():
 
 
 if __name__ == "__main__":
-    print("扫描二维吗确认登陆")
     print("有人撤回我会在微信的文件助手告诉你的")
+    print("已经成功启动...")
     # print("同级目录下面创建user.txt文件里面逐行写上昵称")
     find_target()
     timer = LoopTimer(400, clear_old)
