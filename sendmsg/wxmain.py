@@ -5,6 +5,7 @@ import time
 from wxpy import *
 
 from sendmsg.loop_timer import LoopTimer
+from wxpy import WeChatLoggingHandler
 
 bot = Bot(cache_path=True)
 mp = bot.enable_puid(path='wxpy_puid.pkl')
@@ -20,7 +21,7 @@ nick_name_csh = 'a～💗小屁民陈哒哒'
 remark_name_csh = '天使座'
 special_user = [nick_name_csh, remark_name_csh, '魔鬼座', '罗沛鹏']
 
-debug = False
+debug = True
 
 
 def clear_old():
@@ -123,19 +124,12 @@ def print_others(msg):
         tips = build_name(cancelled_message)
         # 如果是文本则直接转发
         if cancelled_message.type == TEXT:
-            cancelled_message.forward(bot.file_helper, prefix=tips,
-                                      raise_for_unsupported=True)
+            prefix = '{tips}\n{text}'.format(tips=tips, text=cancelled_message.text)
+            resend_message(cancelled_message.type, old_msg_id, prefix=prefix)
             pass
         # 如果是图片和视频，则直接转发
         elif cancelled_message.type == PICTURE or cancelled_message.type == VIDEO:
-            cancelled_message.forward(bot.file_helper, prefix=tips,
-                                      raise_for_unsupported=True)
-            final_path = '{id}(+){user_name}(+){file_name}'.format(id=msg_id,
-                                                                   user_name=user_name,
-                                                                   file_name=cancelled_message.file_name)
-
-            save_path = SourceSavePath + final_path
-            cancelled_message.get_file(save_path=save_path)
+            resend_message(cancelled_message.type, old_msg_id, tips)
             pass
         else:
             pass
@@ -143,8 +137,43 @@ def print_others(msg):
         print(old_msg_id)
         print(cancelled_message.raw['Text'])
         pass
+    else:
+        # 正常撤消息
+        if msg.type == PICTURE or msg.type == VIDEO:
+            final_path = '{id}-{user_name}-{file_name}'.format(id=msg_id, user_name=user_name,
+                                                               file_name=msg.file_name)
+            save_path = SourceSavePath + final_path
+            msg.get_file(save_path=save_path)
 
     print('此条消息处理完毕！！！')
+
+
+def find_cached_file(msg_id):
+    g = os.walk(SourceSavePath)
+    for path, dir_list, file_list in g:
+        for file_name in file_list:
+            if msg_id in file_name:
+                return os.path.join(path, file_name)
+    return None
+
+
+def resend_message(msg_type, msg_id, prefix):
+    local_file_path = find_cached_file(msg_id=msg_id)
+    if local_file_path is None and msg_type != TEXT:
+        print("没有找到对应的缓存文件")
+        return
+    bot.file_helper.send(prefix)
+    if msg_type == PICTURE:
+        bot.file_helper.send_image(local_file_path)
+        pass
+    elif msg_type == VIDEO:
+        bot.file_helper.send_video(local_file_path)
+        pass
+    elif msg_type == TEXT:
+        # bot.file_helper.send(prefix)
+        pass
+    else:
+        pass
 
 
 def find_target():
