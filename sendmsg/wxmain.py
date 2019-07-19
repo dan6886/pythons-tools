@@ -9,10 +9,6 @@ from wxpy import WeChatLoggingHandler
 
 bot = Bot(cache_path=True)
 mp = bot.enable_puid(path='wxpy_puid.pkl')
-# myfriends = bot.friends().search('天使座')[0]
-#
-# print(mp.get_puid(myfriends))
-# print(myfriends.puid)
 
 SourceSavePath = './RecieveFile/'
 messages = ()
@@ -21,7 +17,8 @@ nick_name_csh = 'a～💗小屁民陈哒哒'
 remark_name_csh = '天使座'
 special_user = [nick_name_csh, remark_name_csh, '魔鬼座', '罗沛鹏']
 
-debug = False
+debug = True
+
 
 def clear_old():
     # 循环遍历300秒的消息删除不保存
@@ -75,8 +72,7 @@ def build_name(msg):
     if special is not None:
         pre_sentence = special
     else:
-        pre_sentence = '{name}|{nick_name}--->测回一条消息:'.format(name=name,
-                                                              nick_name=from_chat)
+        pre_sentence = '{name}|{nick_name}--->测回一条消息:'.format(name=name, nick_name=from_chat)
     return pre_sentence
 
 
@@ -122,14 +118,14 @@ def print_others(msg):
         cancelled_message = all_messages.get(old_msg_id)
         # 只是根据不同的联系人生成不同的回复话语，tips可以写死
         tips = build_name(cancelled_message)
-        # 如果是文本则直接转发
+        # 如果是文本
         if cancelled_message.type == TEXT:
             prefix = '{tips}\n{time}\n{text}'.format(tips=tips,
                                                      time=get_time_tips(cancelled_message),
                                                      text=cancelled_message.text)
             resend_message(cancelled_message.type, old_msg_id, prefix=prefix)
             pass
-        # 如果是图片和视频，则直接转发
+        # 如果是图片和视频
         elif cancelled_message.type == PICTURE or cancelled_message.type == VIDEO:
             prefix = '{tips}\n{time}'.format(tips=tips,
                                              time=get_time_tips(cancelled_message))
