@@ -21,8 +21,7 @@ nick_name_csh = 'a～💗小屁民陈哒哒'
 remark_name_csh = '天使座'
 special_user = [nick_name_csh, remark_name_csh, '魔鬼座', '罗沛鹏']
 
-debug = True
-
+debug = False
 
 def clear_old():
     # 循环遍历300秒的消息删除不保存
@@ -32,6 +31,7 @@ def clear_old():
             del all_messages[key]
             print("delete over time:" + str(message_old.create_time), message_old)
     print_debug("there is left messages:" + str(len(all_messages)))
+    delete_expired_file()
 
 
 def print_debug(msg):
@@ -124,12 +124,16 @@ def print_others(msg):
         tips = build_name(cancelled_message)
         # 如果是文本则直接转发
         if cancelled_message.type == TEXT:
-            prefix = '{tips}\n{text}'.format(tips=tips, text=cancelled_message.text)
+            prefix = '{tips}\n{time}\n{text}'.format(tips=tips,
+                                                     time=get_time_tips(cancelled_message),
+                                                     text=cancelled_message.text)
             resend_message(cancelled_message.type, old_msg_id, prefix=prefix)
             pass
         # 如果是图片和视频，则直接转发
         elif cancelled_message.type == PICTURE or cancelled_message.type == VIDEO:
-            resend_message(cancelled_message.type, old_msg_id, tips)
+            prefix = '{tips}\n{time}'.format(tips=tips,
+                                             time=get_time_tips(cancelled_message))
+            resend_message(cancelled_message.type, old_msg_id, prefix=prefix)
             pass
         else:
             pass
@@ -138,7 +142,7 @@ def print_others(msg):
         print(cancelled_message.raw['Text'])
         pass
     else:
-        # 正常撤消息
+        # 正常消息
         if msg.type == PICTURE or msg.type == VIDEO:
             final_path = '{id}-{user_name}-{file_name}'.format(id=msg_id, user_name=user_name,
                                                                file_name=msg.file_name)
@@ -146,6 +150,32 @@ def print_others(msg):
             msg.get_file(save_path=save_path)
 
     print('此条消息处理完毕！！！')
+
+
+def get_time_tips(msg):
+    return '接收时间:{r}|撤回时间:{rc}'.format(r=msg.create_time, rc=get_current_time())
+
+
+def delete_expired_file():
+    format_date = get_format_date()
+    g = os.walk(SourceSavePath)
+    for path, dir_list, file_list in g:
+        for file_name in file_list:
+            # 去除后缀
+            pre_name = os.path.splitext(file_name)[0]
+            # 分隔出 -
+            file_names = pre_name.split('-')
+            # 获取时间
+            file_date = file_names[-2] + file_names[-1]
+            # 只删除时间超过5分钟的
+            if int(format_date) - int(file_date) > 60 * 5:
+                os.remove(os.path.join(path, file_name))
+                print("delete expired file" + file_name)
+
+
+def get_format_date():
+    date = time.strftime("%Y%m%d%H%M%S", time.localtime())[2:]
+    return date
 
 
 def find_cached_file(msg_id):
@@ -188,9 +218,19 @@ def find_target():
         special_user.append(user)
 
 
+def create_cached_dir():
+    path = SourceSavePath
+    if os.path.exists(path=path):
+        print("缓存文件夹存在")
+    else:
+        os.mkdir(path=path)
+        print("缓存文件夹不存在,创建一个缓存文件夹")
+
+
 if __name__ == "__main__":
     print("有人撤回我会在微信的文件助手告诉你的")
     print("已经成功启动...")
+    create_cached_dir()
     # print("同级目录下面创建user.txt文件里面逐行写上昵称")
     find_target()
     timer = LoopTimer(400, clear_old)
